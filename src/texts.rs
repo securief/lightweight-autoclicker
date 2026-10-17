@@ -1,0 +1,96 @@
+pub struct Texts {
+    pub autosave: &'static str,
+    pub always_on_top: &'static str,
+    pub dark: &'static str,
+    pub interval: &'static str,
+    pub unit_h: &'static str,
+    pub unit_m: &'static str,
+    pub unit_s: &'static str,
+    pub unit_ms: &'static str,
+    pub repeat: &'static str,
+    pub infinite: &'static str,
+    pub times: &'static str,
+    pub button_type: &'static str,
+    pub left: &'static str,
+    pub right: &'static str,
+    pub middle: &'static str,
+    pub single: &'static str,
+    pub double: &'static str,
+    pub position: &'static str,
+    pub cursor: &'static str,
+    pub pick: &'static str,
+    pub start: &'static str,
+    pub stop: &'static str,
+    pub set_hotkey: &'static str,
+    pub hotkey_action: &'static str,
+    pub press_key: &'static str,
+    pub close: &'static str,
+}
+
+pub const EN: Texts = Texts {
+    autosave: "AutoSave",
+    always_on_top: "OnTop",
+    dark: "Dark",
+    interval: "Interval",
+    unit_h: "h",
+    unit_m: "m",
+    unit_s: "s",
+    unit_ms: "ms",
+    repeat: "Repeat",
+    infinite: "Infinite",
+    times: "times",
+    button_type: "Button / Type",
+    left: "Left",
+    right: "Right",
+    middle: "Middle",
+    single: "Single",
+    double: "Double",
+    position: "Position",
+    cursor: "Cursor",
+    pick: "Pick",
+    start: "START",
+    stop: "STOP",
+    set_hotkey: "Set Hotkey",
+    hotkey_action: "Start/Stop:",
+    press_key: "Press a key... (Esc cancels)",
+    close: "Close",
+};
+
+pub const ID: Texts = Texts {
+    autosave: "AutoSimpan",
+    always_on_top: "Selalu Atas",
+    dark: "Gelap",
+    interval: "Interval",
+    unit_h: "h",
+    unit_m: "m",
+    unit_s: "s",
+    unit_ms: "ms",
+    repeat: "Ulangi",
+    infinite: "Tanpa Batas",
+    times: "kali",
+    button_type: "Tombol / Tipe",
+    left: "Kiri",
+    right: "Kanan",
+    middle: "Tengah",
+    single: "Tunggal",
+    double: "Ganda",
+    position: "Posisi",
+    cursor: "Kursor",
+    pick: "Pilih",
+    start: "MULAI",
+    stop: "HENTIKAN",
+    set_hotkey: "Atur Hotkey",
+    hotkey_action: "Mulai/Henti:",
+    press_key: "Tekan tombol... (Esc batal)",
+    close: "Tutup",
+};
+
+impl Texts {
+    pub fn for_lang(lang: u8) -> &'static Texts {
+        if lang == 1 {
+            &ID
+        } else {
+            &EN
+        }
+    }
+}
