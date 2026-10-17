@@ -6,6 +6,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/securief/lightweight-autoclicker/releases/latest"><img alt="Download" src="https://img.shields.io/github/v/release/securief/lightweight-autoclicker?label=download&color=blue"></a>
   <img alt="Language" src="https://img.shields.io/badge/Language-Rust-orange?logo=rust">
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-blue">
   <img alt="RAM Usage" src="https://img.shields.io/badge/RAM-~2--3%20MB-brightgreen">
@@ -67,12 +68,30 @@
 │   ├── picker.rs         # Pick Location input: GetCursorPos+GetAsyncKeyState (Win) / device_query (Unix)
 │   ├── instance.rs       # OS file-lock single-instance guard + show signal + tests
 │   └── icon.rs           # Compile-time embedded RGBA icon loader
+├── .github/workflows/release.yml  # Tag-triggered CI: fmt/clippy/test, then build & publish releases
 ├── .cargo/config.toml    # Windows MSVC linker flags (/OPT:REF, /OPT:ICF)
 ├── build.rs              # Embeds Windows PE VersionInfo & icon resource (winresource)
 ├── release.ps1           # Release build wrapper (no packer) + binary size report
 ├── Cargo.toml            # Dependencies & anti-false-positive release profile
 └── Cargo.lock            # Pinned dependency versions (binary crate → commit it)
 ```
+
+---
+
+## ⬇️ Download
+
+Prebuilt binaries are attached to every [release](https://github.com/securief/lightweight-autoclicker/releases/latest) — no Rust toolchain required:
+
+| Platform | Asset |
+| --- | --- |
+| Windows 10/11 (64-bit) | `autoclicker-<version>-windows-x86_64.exe` |
+| Linux (x86_64) | `autoclicker-<version>-linux-x86_64` |
+| macOS (Apple Silicon) | `autoclicker-<version>-macos-arm64` |
+| macOS (Intel) | `autoclicker-<version>-macos-x86_64` |
+
+* `SHA256SUMS.txt` is attached to every release to verify a download.
+* The Linux build links against `libxdo` at runtime — on Debian/Ubuntu: `sudo apt install libxdo3`.
+* Binaries are **unsigned**: Windows SmartScreen and macOS Gatekeeper may warn on first run. On macOS the app must be granted **Accessibility** permission (System Settings → Privacy & Security → Accessibility) before clicking works.
 
 ---
 

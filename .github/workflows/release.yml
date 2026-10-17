@@ -1,0 +1,148 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build and publish, for example v0.1.0
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event.inputs.tag || github.ref_name }}
+  CHECKOUT_REF: ${{ github.event.inputs.tag || github.ref }}
+  LINUX_DEPS: libxdo-dev libx11-dev libxtst-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y $LINUX_DEPS
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: checks
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Test
+        run: cargo test --locked
+
+  build:
+    name: Build ${{ matrix.platform }}
+    needs: checks
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows-x86_64
+            ext: .exe
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            platform: linux-x86_64
+            ext: ""
+          - os: macos-13
+            target: x86_64-apple-darwin
+            platform: macos-x86_64
+            ext: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            platform: macos-arm64
+            ext: ""
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET: ${{ matrix.target }}
+      PLATFORM: ${{ matrix.platform }}
+      EXT: ${{ matrix.ext }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.CHECKOUT_REF }}
+      - name: Install Linux system dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y $LINUX_DEPS
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - name: Build
+        shell: bash
+        run: cargo build --release --locked --target "$TARGET"
+      - name: Stage asset
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp "target/$TARGET/release/autoclicker$EXT" "dist/autoclicker-$TAG-$PLATFORM$EXT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          case "$TAG" in
+            v*) ;;
+            *) echo "TAG must look like v0.1.0 (got '$TAG')"; exit 1 ;;
+          esac
+          cd dist
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          cd ..
+          cat > notes.md <<EOF
+          Native cross-platform autoclicker: one small native binary, no installer, no webview, no packer.
+
+          Downloads
+          - Windows 10/11 (64-bit): autoclicker-$TAG-windows-x86_64.exe
+          - Linux (x86_64): autoclicker-$TAG-linux-x86_64 (needs libxdo3; Debian/Ubuntu: sudo apt install libxdo3)
+          - macOS Apple Silicon: autoclicker-$TAG-macos-arm64
+          - macOS Intel: autoclicker-$TAG-macos-x86_64
+          - SHA256SUMS.txt: checksums for every asset above
+
+          Notes
+          - Binaries are unsigned: Windows SmartScreen and macOS Gatekeeper may warn on first run.
+          - macOS needs Accessibility permission (System Settings > Privacy & Security > Accessibility) before clicking works.
+          - Idle CPU 0.0%, RAM about 2-3 MB, single executable about 1.65 MB.
+          EOF
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* -R "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" dist/* -R "$GITHUB_REPOSITORY" --title "Lightweight Autoclicker $TAG" --notes-file notes.md
+          fi
