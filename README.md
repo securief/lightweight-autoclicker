@@ -13,6 +13,10 @@
   <img alt="Idle CPU" src="https://img.shields.io/badge/Idle%20CPU-0.0%25-success">
 </p>
 
+<p align="center">
+  <img alt="Lightweight Autoclicker window" src="assets/app_screenshot.png" width="426">
+</p>
+
 ---
 
 ## 📖 Overview
@@ -51,6 +55,7 @@
 
 ```text
 ├── assets/
+│   ├── app_screenshot.png # Window screenshot used in this README
 │   ├── app_icon.ico      # Windows .exe icon (multi-size 16..256)
 │   ├── app_icon.rgba     # Raw 32x32 RGBA window/taskbar icon (4 KB, include_bytes!)
 │   ├── app_icon.png      # Design preview
