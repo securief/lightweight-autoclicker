@@ -20,7 +20,6 @@ concurrency:
 
 env:
   TAG: ${{ github.event.inputs.tag || github.ref_name }}
-  CHECKOUT_REF: ${{ github.event.inputs.tag || github.ref }}
   LINUX_DEPS: libxdo-dev libx11-dev libxtst-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libwayland-dev
 
 jobs:
@@ -29,8 +28,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.CHECKOUT_REF }}
       - name: Install Linux system dependencies
         run: |
           sudo apt-get update
@@ -78,8 +75,6 @@ jobs:
       EXT: ${{ matrix.ext }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ env.CHECKOUT_REF }}
       - name: Install Linux system dependencies
         if: runner.os == 'Linux'
         run: |
